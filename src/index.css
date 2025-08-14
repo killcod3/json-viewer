@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ACE Editor Styling */
+.ace-editor-container {
+  height: 100%;
+  width: 100%;
+}
+
+.ace-editor {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+.ace_editor {
+  height: 100% !important;
+  width: 100% !important;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
+}
+
+/* Ensure parent containers have proper height */
+.h-screen {
+  height: 100vh;
+}
+
+.flex-1 {
+  flex: 1;
+  min-height: 0;
+}
