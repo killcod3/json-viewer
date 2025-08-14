@@ -16,7 +16,7 @@ A modern, interactive JSON viewer and editor built with React, TypeScript, and A
 
 ## 🚀 Live Demo
 
-[**👀 View Live Demo**]([https://your-app-url.vercel.app](https://json-viewer-app-psi.vercel.app/)) ← Click here to try it out!
+[**👀 View Live Demo**](https://json-viewer-app-psi.vercel.app/) ← Click here to try it out!
 
 ## 📸 Screenshots
 
