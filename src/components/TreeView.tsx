@@ -1,8 +1,10 @@
 import { useState, type FC } from 'react';
-import { ChevronRight, ChevronDown, Copy, Expand, Minimize2, Search } from 'lucide-react';
+import { ChevronRight, ChevronDown, Copy, Expand, Minimize2, Search, Code2 } from 'lucide-react';
 import SearchBar from './SearchBar';
 import { HighlightedText } from './HighlightedText';
 import { useSearch } from '../hooks/useSearch';
+import CodeModal from './CodeModal';
+import { CodeGenerator } from '../services/codeGenerator';
 
 interface TreeNodeProps {
   data: any;
@@ -15,6 +17,7 @@ interface TreeNodeProps {
   onToggleExpand?: (path: string[], expanded: boolean) => void;
   searchTerm?: string;
   currentMatchIndex?: number;
+  onGenerateCode?: (path: string[], value: any) => void;
 }
 
 export const TreeNode: FC<TreeNodeProps> = ({ 
@@ -27,7 +30,8 @@ export const TreeNode: FC<TreeNodeProps> = ({
   expandedState = {},
   onToggleExpand,
   searchTerm = '',
-  currentMatchIndex = 0
+  currentMatchIndex = 0,
+  onGenerateCode
 }) => {
   const currentPath = keyName ? [...path, keyName] : path;
   const pathKey = currentPath.join('.');
@@ -108,15 +112,28 @@ export const TreeNode: FC<TreeNodeProps> = ({
               currentMatchIndex={currentMatchIndex}
             />
           </span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              copyToClipboard(data);
-            }}
-            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 rounded transition-opacity"
-          >
-            <Copy size={12} className="text-gray-500" />
-          </button>
+          <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onGenerateCode?.(currentPath, data);
+              }}
+              className="p-1.5 hover:bg-blue-100 hover:shadow-md hover:shadow-blue-200/50 rounded transition-all duration-200"
+              title="Generate code snippet to access this value"
+            >
+              <Code2 size={15} className="text-blue-600" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                copyToClipboard(data);
+              }}
+              className="p-1.5 hover:bg-gray-100 hover:shadow-md hover:shadow-gray-300/50 rounded transition-all duration-200"
+              title="Copy this value to clipboard"
+            >
+              <Copy size={15} className="text-gray-600" />
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -158,15 +175,28 @@ export const TreeNode: FC<TreeNodeProps> = ({
             {Array.isArray(data) ? `[${data.length}]` : `{${entries.length}}`}
           </span>
         </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            copyToClipboard(data);
-          }}
-          className="ml-2 opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 rounded transition-opacity"
-        >
-          <Copy size={12} className="text-gray-500" />
-        </button>
+        <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onGenerateCode?.(currentPath, data);
+            }}
+            className="p-1.5 hover:bg-blue-100 hover:shadow-md hover:shadow-blue-200/50 rounded transition-all duration-200"
+            title="Generate code snippet to access this object/array"
+          >
+            <Code2 size={15} className="text-blue-600" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              copyToClipboard(data);
+            }}
+            className="p-1.5 hover:bg-gray-100 hover:shadow-md hover:shadow-gray-300/50 rounded transition-all duration-200"
+            title="Copy this entire object/array to clipboard"
+          >
+            <Copy size={15} className="text-gray-600" />
+          </button>
+        </div>
       </div>
       
       {isExpanded && (
@@ -184,6 +214,7 @@ export const TreeNode: FC<TreeNodeProps> = ({
               onToggleExpand={onToggleExpand}
               searchTerm={searchTerm}
               currentMatchIndex={currentMatchIndex}
+              onGenerateCode={onGenerateCode}
             />
           ))}
         </div>
@@ -203,6 +234,8 @@ export const TreeView: FC<TreeViewProps> = ({ data, title }) => {
   const [expandedState, setExpandedState] = useState<{ [key: string]: boolean }>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [showCodeModal, setShowCodeModal] = useState(false);
+  const [codeSnippets, setCodeSnippets] = useState<any[]>([]);
   
   const jsonString = data ? JSON.stringify(data, null, 2) : '';
   const { currentMatchIndex, totalMatches, goToNextMatch, goToPrevMatch } = useSearch(jsonString, searchTerm);
@@ -218,6 +251,17 @@ export const TreeView: FC<TreeViewProps> = ({ data, title }) => {
       ...prev,
       [pathKey]: expanded
     }));
+  };
+
+  const handleGenerateCode = (path: string[], value: any) => {
+    const snippets = CodeGenerator.generateAllSnippets(path, value, {
+      includeComments: true,
+      includeErrorHandling: true
+    });
+    setCodeSnippets(snippets);
+    setSelectedPath(path);
+    setSelectedValue(value);
+    setShowCodeModal(true);
   };
 
   const handleToggleSearch = () => {
@@ -317,6 +361,15 @@ export const TreeView: FC<TreeViewProps> = ({ data, title }) => {
         <div className="flex-1 flex items-center justify-center text-gray-500">
           No valid JSON to display
         </div>
+        
+        {/* Code Generation Modal */}
+        <CodeModal
+          isOpen={showCodeModal}
+          onClose={() => setShowCodeModal(false)}
+          snippets={codeSnippets}
+          selectedPath={selectedPath}
+          selectedValue={selectedValue}
+        />
       </div>
     );
   }
@@ -395,8 +448,18 @@ export const TreeView: FC<TreeViewProps> = ({ data, title }) => {
           onToggleExpand={handleToggleExpand}
           searchTerm={searchTerm}
           currentMatchIndex={currentMatchIndex}
+          onGenerateCode={handleGenerateCode}
         />
       </div>
+
+      {/* Code Generation Modal */}
+      <CodeModal
+        isOpen={showCodeModal}
+        onClose={() => setShowCodeModal(false)}
+        snippets={codeSnippets}
+        selectedPath={selectedPath}
+        selectedValue={selectedValue}
+      />
     </div>
   );
 };

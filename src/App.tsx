@@ -4,7 +4,7 @@ import { TreeView } from './components/TreeView';
 import SearchBar from './components/SearchBar';
 import { useJsonParser } from './hooks/useJsonParser';
 import { useSearch } from './hooks/useSearch';
-import { Braces, Search, Code, Minimize2 } from 'lucide-react';
+import { Braces, Search, Code, Minimize2, Github } from 'lucide-react';
 
 const SAMPLE_JSON = `{
   "name": "John Doe",
@@ -88,22 +88,36 @@ function App() {
           </div>
           
           {/* Credits */}
-          <div className="flex items-center space-x-1 text-base text-gray-500">
-            <span>Built with</span>
-            <span className="text-red-500">♥</span>
-            <span>by</span>
-            <a 
-              href="https://github.com/killcod3" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-            >
-              Jawad
-            </a>
+          <div className="flex flex-col items-center space-y-0.5 text-sm text-gray-500">
+            <div className="flex items-center space-x-1 h-5">
+              <a 
+                href="https://github.com/killcod3/json-viewer" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center space-x-1 text-gray-600 hover:text-gray-800 transition-colors"
+                title="View source code on GitHub"
+              >
+                <Github size={16} />
+                <span>Open Source</span>
+              </a>
+            </div>
+            <div className="flex items-center space-x-1 h-5">
+              <span>Built with</span>
+              <span className="text-red-500">♥</span>
+              <span>by</span>
+              <a 
+                href="https://github.com/killcod3" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+              >
+                Jawad
+              </a>
+            </div>
           </div>
         </div>
         <p className="text-gray-600 text-sm mt-1">
-          Parse, format, and explore your JSON data with an interactive tree view
+          Interactive JSON explorer with instant parsing and code generation
         </p>
       </div>
 
