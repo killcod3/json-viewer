@@ -4,20 +4,20 @@ import SearchBar from './SearchBar';
 import { HighlightedText } from './HighlightedText';
 import { useSearch } from '../hooks/useSearch';
 import CodeModal from './CodeModal';
-import { CodeGenerator } from '../services/codeGenerator';
+import { CodeGenerator, type CodeSnippet } from '../services/codeGenerator';
 
 interface TreeNodeProps {
-  data: any;
+  data: unknown;
   keyName?: string;
   level?: number;
   path?: string[];
-  onSelectPath?: (path: string[], value: any) => void;
+  onSelectPath?: (path: string[], value: unknown) => void;
   selectedPath?: string[];
   expandedState?: { [key: string]: boolean };
   onToggleExpand?: (path: string[], expanded: boolean) => void;
   searchTerm?: string;
   currentMatchIndex?: number;
-  onGenerateCode?: (path: string[], value: any) => void;
+  onGenerateCode?: (path: string[], value: unknown) => void;
 }
 
 export const TreeNode: FC<TreeNodeProps> = ({ 
@@ -38,13 +38,13 @@ export const TreeNode: FC<TreeNodeProps> = ({
   const isExpanded = expandedState[pathKey] !== false; // Default to expanded
   const isSelected = JSON.stringify(currentPath) === JSON.stringify(selectedPath);
   
-  const getDataType = (value: any): string => {
+  const getDataType = (value: unknown): string => {
     if (value === null) return 'null';
     if (Array.isArray(value)) return 'array';
     return typeof value;
   };
 
-  const getValueColor = (value: any): string => {
+  const getValueColor = (value: unknown): string => {
     const type = getDataType(value);
     switch (type) {
       case 'string': return 'text-green-600';
@@ -55,7 +55,7 @@ export const TreeNode: FC<TreeNodeProps> = ({
     }
   };
 
-  const renderValue = (value: any) => {
+  const renderValue = (value: unknown) => {
     const type = getDataType(value);
     if (type === 'string') {
       return `"${value}"`;
@@ -66,11 +66,11 @@ export const TreeNode: FC<TreeNodeProps> = ({
     return String(value);
   };
 
-  const isExpandable = (value: any) => {
+  const isExpandable = (value: unknown) => {
     return typeof value === 'object' && value !== null;
   };
 
-  const copyToClipboard = (value: any) => {
+  const copyToClipboard = (value: unknown) => {
     navigator.clipboard.writeText(JSON.stringify(value, null, 2));
   };
 
@@ -94,7 +94,7 @@ export const TreeNode: FC<TreeNodeProps> = ({
         }`}
         onClick={handleSelect}
       >
-        <div className="flex items-center space-x-2 py-1">
+        <div className="flex items-center space-x-2">
           {keyName && (
             <>
               <span className="text-blue-800 font-medium">
@@ -141,7 +141,7 @@ export const TreeNode: FC<TreeNodeProps> = ({
 
   const entries = Array.isArray(data) 
     ? data.map((item, index) => [index, item])
-    : Object.entries(data);
+    : Object.entries(data as Record<string, unknown>);
 
   return (
     <div className={level > 0 ? 'ml-4' : ''}>
@@ -224,23 +224,23 @@ export const TreeNode: FC<TreeNodeProps> = ({
 };
 
 interface TreeViewProps {
-  data: any;
+  data: unknown;
   title: string;
 }
 
 export const TreeView: FC<TreeViewProps> = ({ data, title }) => {
   const [selectedPath, setSelectedPath] = useState<string[]>([]);
-  const [selectedValue, setSelectedValue] = useState<any>(null);
+  const [selectedValue, setSelectedValue] = useState<unknown>(null);
   const [expandedState, setExpandedState] = useState<{ [key: string]: boolean }>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
-  const [codeSnippets, setCodeSnippets] = useState<any[]>([]);
+  const [codeSnippets, setCodeSnippets] = useState<CodeSnippet[]>([]);
   
   const jsonString = data ? JSON.stringify(data, null, 2) : '';
   const { currentMatchIndex, totalMatches, goToNextMatch, goToPrevMatch } = useSearch(jsonString, searchTerm);
 
-  const handleSelectPath = (path: string[], value: any) => {
+  const handleSelectPath = (path: string[], value: unknown) => {
     setSelectedPath(path);
     setSelectedValue(value);
   };
@@ -253,7 +253,7 @@ export const TreeView: FC<TreeViewProps> = ({ data, title }) => {
     }));
   };
 
-  const handleGenerateCode = (path: string[], value: any) => {
+  const handleGenerateCode = (path: string[], value: unknown) => {
     const snippets = CodeGenerator.generateAllSnippets(path, value, {
       includeComments: true,
       includeErrorHandling: true
@@ -272,13 +272,13 @@ export const TreeView: FC<TreeViewProps> = ({ data, title }) => {
   };
 
   const expandAll = () => {
-    const getAllPaths = (obj: any, currentPath: string[] = []): string[] => {
+    const getAllPaths = (obj: unknown, currentPath: string[] = []): string[] => {
       const paths: string[] = [];
       
       if (typeof obj === 'object' && obj !== null) {
         const entries = Array.isArray(obj) 
           ? obj.map((item, index) => [index, item])
-          : Object.entries(obj);
+          : Object.entries(obj as Record<string, unknown>);
         for (const [key, value] of entries) {
           const newPath = [...currentPath, String(key)];
           if (typeof value === 'object' && value !== null) {
@@ -300,13 +300,13 @@ export const TreeView: FC<TreeViewProps> = ({ data, title }) => {
   };
 
   const collapseAll = () => {
-    const getAllPaths = (obj: any, currentPath: string[] = []): string[] => {
+    const getAllPaths = (obj: unknown, currentPath: string[] = []): string[] => {
       const paths: string[] = [];
       
       if (typeof obj === 'object' && obj !== null) {
         const entries = Array.isArray(obj) 
           ? obj.map((item, index) => [index, item])
-          : Object.entries(obj);
+          : Object.entries(obj as Record<string, unknown>);
         for (const [key, value] of entries) {
           const newPath = [...currentPath, String(key)];
           if (typeof value === 'object' && value !== null) {

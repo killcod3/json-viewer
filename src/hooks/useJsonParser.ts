@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 interface JsonParserResult {
-  parsedData: any;
+  parsedData: unknown;
   error: string | null;
   isValid: boolean;
 }

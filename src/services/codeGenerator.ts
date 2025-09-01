@@ -73,7 +73,7 @@ export class CodeGenerator {
     return result;
   }
 
-  private static getValueComment(value: any): string {
+  private static getValueComment(value: unknown): string {
     if (typeof value === 'string') {
       return JSON.stringify(value);
     }
@@ -90,7 +90,7 @@ export class CodeGenerator {
 
   public static generateJavaScript(
     path: string[], 
-    _value: any, 
+    _value: unknown,
     options: CodeGeneratorOptions = {}
   ): CodeSnippet {
     const {
@@ -176,7 +176,7 @@ export class CodeGenerator {
 
   public static generatePython(
     path: string[], 
-    _value: any, 
+    _value: unknown,
     options: CodeGeneratorOptions = {}
   ): CodeSnippet {
     const {
@@ -265,7 +265,7 @@ export class CodeGenerator {
 
   public static generateJava(
     path: string[], 
-    value: any, 
+    value: unknown,
     options: CodeGeneratorOptions = {}
   ): CodeSnippet {
     const {
@@ -329,15 +329,42 @@ export class CodeGenerator {
     };
   }
 
+  public static generateJSONPath(path: string[], value: unknown): CodeSnippet {
+    let jsonPath = '$';
+    
+    for (const key of path) {
+      if (/^\d+$/.test(key)) {
+        // Array index
+        jsonPath += `[${key}]`;
+      } else if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {
+        // Simple property name
+        jsonPath += `.${key}`;
+      } else {
+        // Property name with special characters
+        jsonPath += `['${key}']`;
+      }
+    }
+    
+    const valueType = Array.isArray(value) ? 'array' : typeof value;
+    const valuePreview = typeof value === 'string' ? `"${value}"` : String(value);
+    
+    return {
+      language: 'jsonpath',
+      code: jsonPath,
+      description: `JSONPath expression to access ${path.length > 0 ? path.join(' → ') : 'root'} (${valueType}: ${valuePreview})`
+    };
+  }
+
   public static generateAllSnippets(
     path: string[], 
-    value: any, 
+    value: unknown, 
     options: CodeGeneratorOptions = {}
   ): CodeSnippet[] {
     return [
       this.generateJavaScript(path, value, options),
       this.generatePython(path, value, options),
-      this.generateJava(path, value, options)
+      this.generateJava(path, value, options),
+      this.generateJSONPath(path, value)
     ];
   }
 }

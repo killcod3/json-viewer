@@ -7,7 +7,7 @@ interface CodeModalProps {
   onClose: () => void;
   snippets: CodeSnippet[];
   selectedPath: string[];
-  selectedValue: any;
+  selectedValue: unknown;
 }
 
 const CodeModal: React.FC<CodeModalProps> = ({
@@ -42,6 +42,8 @@ const CodeModal: React.FC<CodeModalProps> = ({
         return '🐍';
       case 'java':
         return '☕';
+      case 'jsonpath':
+        return '🔍';
       default:
         return '📄';
     }
@@ -55,6 +57,8 @@ const CodeModal: React.FC<CodeModalProps> = ({
         return 'Python';
       case 'java':
         return 'Java';
+      case 'jsonpath':
+        return 'JSONPath';
       default:
         return language.charAt(0).toUpperCase() + language.slice(1);
     }

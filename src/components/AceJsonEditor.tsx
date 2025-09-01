@@ -31,7 +31,7 @@ export interface AceEditorRef {
   getEditor: () => ace.Ace.Editor | null;
 }
 
-const AceJsonEditor = React.forwardRef<any, AceJsonEditorProps>(({
+const AceJsonEditor = React.forwardRef<AceEditorRef, AceJsonEditorProps>(({
   value,
   onChange,
   searchQuery = '',
@@ -180,7 +180,7 @@ const AceJsonEditor = React.forwardRef<any, AceJsonEditorProps>(({
     const session = editor.getSession();
     const markers = session.getMarkers();
     Object.keys(markers).forEach(markerId => {
-      const marker = (markers as any)[markerId];
+      const marker = markers[parseInt(markerId)];
       if (marker.clazz === 'ace_selection' || 
           marker.clazz === 'ace_selected-word') {
         session.removeMarker(parseInt(markerId));
@@ -223,7 +223,7 @@ const AceJsonEditor = React.forwardRef<any, AceJsonEditorProps>(({
       const parsed = JSON.parse(currentValue);
       const formatted = JSON.stringify(parsed, null, 2);
       aceEditorRef.current.setValue(formatted, -1);
-    } catch (error) {
+    } catch {
       console.warn('Cannot format invalid JSON');
     }
   };
@@ -237,7 +237,7 @@ const AceJsonEditor = React.forwardRef<any, AceJsonEditorProps>(({
       const parsed = JSON.parse(currentValue);
       const minified = JSON.stringify(parsed);
       aceEditorRef.current.setValue(minified, -1);
-    } catch (error) {
+    } catch {
       console.warn('Cannot minify invalid JSON');
     }
   };
