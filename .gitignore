@@ -23,3 +23,13 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Development and documentation files
+architecture-diagrams.md
+implementation-plan.md
+implementation-summary.md
+test-final.mjs
+test-generator.js
+test-generator.mjs
+test-improvements.mjs
+test.json

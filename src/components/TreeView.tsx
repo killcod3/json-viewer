@@ -5,6 +5,7 @@ import { HighlightedText } from './HighlightedText';
 import { useSearch } from '../hooks/useSearch';
 import CodeModal from './CodeModal';
 import { CodeGenerator, type CodeSnippet } from '../services/codeGenerator';
+import { ActionButton } from './ActionButton';
 
 interface TreeNodeProps {
   data: unknown;
@@ -333,18 +334,13 @@ export const TreeView: FC<TreeViewProps> = ({ data, title }) => {
         <div className="bg-gray-50 border-b px-4 py-2 text-sm font-medium text-gray-700 flex justify-between items-center">
           {title}
           <div className="flex space-x-2">
-            <button
-              onClick={handleToggleSearch}
-              className={`flex items-center space-x-1 px-2 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 transition-colors ${
-                showSearch 
-                  ? 'bg-blue-100 text-blue-700 border-blue-300' 
-                  : 'bg-white text-gray-700'
-              }`}
-              title="Search (Ctrl+F)"
-            >
-              <Search size={12} />
-              <span>Search</span>
-            </button>
+<ActionButton
+            icon={Search}
+            label="Search"
+            onClick={handleToggleSearch}
+            isActive={showSearch}
+            title="Search Tree"
+          />
           </div>
         </div>
         {showSearch && (
@@ -379,34 +375,25 @@ export const TreeView: FC<TreeViewProps> = ({ data, title }) => {
       <div className="bg-gray-50 border-b px-4 py-2 text-sm font-medium text-gray-700 flex justify-between items-center">
         {title}
         <div className="flex space-x-2">
-          <button
+          <ActionButton
+            icon={Search}
+            label="Search"
             onClick={handleToggleSearch}
-            className={`flex items-center space-x-1 px-2 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 transition-colors ${
-              showSearch 
-                ? 'bg-blue-100 text-blue-700 border-blue-300' 
-                : 'bg-white text-gray-700'
-            }`}
-            title="Search (Ctrl+F)"
-          >
-            <Search size={12} />
-            <span>Search</span>
-          </button>
-          <button
+            isActive={showSearch}
+            title="Search Tree"
+          />
+          <ActionButton
+            icon={Expand}
+            label="Expand All"
             onClick={expandAll}
-            className="flex items-center space-x-1 px-2 py-1 text-xs bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-            title="Expand All"
-          >
-            <Expand size={12} />
-            <span>Expand All</span>
-          </button>
-          <button
+            title="Expand All Nodes"
+          />
+          <ActionButton
+            icon={Minimize2}
+            label="Collapse All"
             onClick={collapseAll}
-            className="flex items-center space-x-1 px-2 py-1 text-xs bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-            title="Collapse All"
-          >
-            <Minimize2 size={12} />
-            <span>Collapse All</span>
-          </button>
+            title="Collapse All Nodes"
+          />
         </div>
       </div>
       

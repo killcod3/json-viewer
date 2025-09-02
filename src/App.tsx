@@ -1,10 +1,14 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import AceJsonEditor, { AceEditorRef } from './components/AceJsonEditor';
 import { TreeView } from './components/TreeView';
 import SearchBar from './components/SearchBar';
+import { ShareButton } from './components/ShareButton';
+import { TypeScriptButton } from './components/TypeScriptButton';
 import { useJsonParser } from './hooks/useJsonParser';
 import { useSearch } from './hooks/useSearch';
+import { UrlService } from './services/urlService';
 import { Braces, Search, Code, Minimize2, Github } from 'lucide-react';
+import { ActionButton } from './components/ActionButton';
 
 const SAMPLE_JSON = `{
   "name": "John Doe",
@@ -33,9 +37,10 @@ const SAMPLE_JSON = `{
 }`;
 
 function App() {
-  const [jsonInput, setJsonInput] = useState(SAMPLE_JSON);
+  const [jsonInput, setJsonInput] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isInitialized, setIsInitialized] = useState(false);
   const editorRef = useRef<AceEditorRef>(null);
   
   const { parsedData, error, isValid } = useJsonParser(jsonInput);
@@ -46,6 +51,35 @@ function App() {
     goToNextMatch,
     goToPrevMatch
   } = useSearch(jsonInput, searchQuery);
+
+  // Load JSON from URL on mount
+  useEffect(() => {
+    const sharedData = UrlService.decodeJsonFromUrl();
+    
+    if (sharedData) {
+      // If we have shared data, use it
+      try {
+        const jsonString = typeof sharedData === 'string'
+          ? sharedData
+          : JSON.stringify(sharedData, null, 2);
+        setJsonInput(jsonString);
+        
+        // Clear the URL parameter after loading to keep URL clean
+        UrlService.clearUrlData();
+        
+        // Show a notification that shared data was loaded
+        console.log('Loaded shared JSON data from URL');
+      } catch (error) {
+        console.error('Error loading shared data:', error);
+        setJsonInput(SAMPLE_JSON);
+      }
+    } else {
+      // No shared data, use sample JSON
+      setJsonInput(SAMPLE_JSON);
+    }
+    
+    setIsInitialized(true);
+  }, []);
 
   // Convert matches to format expected by ACE Editor
   const aceMatches = matches.map(match => ({
@@ -147,36 +181,35 @@ function App() {
           <div className="bg-gray-50 border-b px-4 py-2 text-sm font-medium text-gray-700 flex justify-between items-center">
             JSON Input
             <div className="flex space-x-2">
-              <button
+              <ShareButton
+                jsonData={parsedData}
+                disabled={!isValid}
+              />
+              <TypeScriptButton
+                jsonData={parsedData}
+                disabled={!isValid}
+              />
+              <ActionButton
+                icon={Search}
+                label="Search"
                 onClick={handleToggleSearch}
-                className={`flex items-center space-x-1 px-2 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 transition-colors ${
-                  showSearch 
-                    ? 'bg-blue-100 text-blue-700 border-blue-300' 
-                    : 'bg-white text-gray-700'
-                }`}
+                isActive={showSearch}
                 title="Search (Ctrl+F)"
-              >
-                <Search size={12} />
-                <span>Search</span>
-              </button>
-              <button
+              />
+              <ActionButton
+                icon={Code}
+                label="Format"
                 onClick={handleFormatJson}
                 disabled={!isValid}
-                className="flex items-center space-x-1 px-2 py-1 text-xs bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Format JSON"
-              >
-                <Code size={12} />
-                <span>Format</span>
-              </button>
-              <button
+              />
+              <ActionButton
+                icon={Minimize2}
+                label="Minify"
                 onClick={handleMinifyJson}
                 disabled={!isValid}
-                className="flex items-center space-x-1 px-2 py-1 text-xs bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Minify JSON"
-              >
-                <Minimize2 size={12} />
-                <span>Minify</span>
-              </button>
+              />
             </div>
           </div>
           
@@ -195,16 +228,18 @@ function App() {
           
           {/* ACE Editor */}
           <div className="flex-1">
-            <AceJsonEditor
-              ref={editorRef}
-              value={jsonInput}
-              onChange={setJsonInput}
-              searchQuery={searchQuery}
-              searchMatches={aceMatches}
-              currentMatchIndex={currentMatchIndex}
-              placeholder="Enter JSON here..."
-              height="100%"
-            />
+            {isInitialized && (
+              <AceJsonEditor
+                ref={editorRef}
+                value={jsonInput}
+                onChange={setJsonInput}
+                searchQuery={searchQuery}
+                searchMatches={aceMatches}
+                currentMatchIndex={currentMatchIndex}
+                placeholder="Enter JSON here..."
+                height="100%"
+              />
+            )}
           </div>
         </div>
 
@@ -226,11 +261,13 @@ function App() {
           
           {/* Data Info - Center */}
           <div>
-            {parsedData && (
+            {parsedData !== null && parsedData !== undefined && (
               <span>
-                {Array.isArray(parsedData) 
-                  ? `Array with ${parsedData.length} items` 
-                  : `Object with ${Object.keys(parsedData).length} properties`}
+                {Array.isArray(parsedData)
+                  ? `Array with ${parsedData.length} items`
+                  : typeof parsedData === 'object'
+                    ? `Object with ${Object.keys(parsedData as Record<string, unknown>).length} properties`
+                    : 'Valid JSON'}
               </span>
             )}
           </div>
